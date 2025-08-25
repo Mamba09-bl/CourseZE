@@ -1,0 +1,152 @@
+const express = require("express");
+const fetch = require("node-fetch"); // works because we installed node-fetch@2
+require("dotenv").config();
+const  nodemailer = require("nodemailer")
+
+const app = express();
+const PORT = 3000;
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// tell Express to use EJS templates
+app.set("view engine", "ejs");
+
+// route to render courses page
+app.get("/courses", async (req, res) => {
+  try {
+    const playlist = req.query.playlistId; // e.g. ?playlistId=PLxxxx
+    if (!playlist) return res.send("playlistId required in query");
+
+    // http://localhost:3000/courses?playlistId=PLu0W_9lII9agq5TrH9XLIKQvv0iaF2X3w
+
+    const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=100&playlistId=${playlist}&key=${process.env.YT_API_KEY}`;
+    //www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlist}&key=${process.env.YT_API_KEY}
+
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    // console.log(data);
+    
+
+    // pass video items to EJS
+    res.render("courses", { lessons: data.items || [] });
+  } catch (err) {
+    res.send("Error: " + err.message);
+  }
+});
+
+
+app.get("/home",async(req,res)=>{
+
+    const playlist = req.query.playlistId; // e.g. ?playlistId=PLxxxx
+    if (!playlist) return res.send("playlistId required in query");
+
+
+
+    const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=10&playlistId=${playlist}&key=${process.env.YT_API_KEY}`;
+   
+
+    
+    const response = await fetch(url);
+    const data = await response.json();
+
+const thumbnails = data.items.map(item => item.snippet.thumbnails.medium.url);
+const one = thumbnails[0]
+console.log(one);
+
+
+
+    
+    res.render("home", { one ,  lessons: data.items})
+})
+
+
+app.get("/buy",(req,res)=>{
+    res.render("buy")
+})
+
+
+// app.post('/checkout',async(req,res)=>{
+
+//     const playlist = req.query.playlistId; // e.g. ?playlistId=PLxxxx
+//     let {link} = req.body
+//     console.log(link);
+    
+//     if (!playlist) return res.send("playlistId required in query");
+//     const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=10&playlistId=${link}&key=${process.env.YT_API_KEY}`;
+//     const response = await fetch(url);
+//     const data = await response.json();
+
+
+//     const transporter = nodemailer.createTransport({
+//     service: "gmail",
+//     auth: {
+//       user: "hamza.ahmed.abbasi07@gmail.com",
+//       pass: "kdwp jglv jedy acij", // never use your real password
+//     },
+//   });
+
+//   await transporter.sendMail({
+//     from: "hamza.ahmed.abbasi07@gmail.com",
+//     to: "hamza.ahmed.abbasi07@gmail.com", // 👈 Use the user-provided email
+//     subject: "Oder placed from Shop X",
+//     text: `here is you course http://localhost:3000/courses?playlistId=${link}`
+//   });
+//   res.redirect("/home")
+// })
+
+
+app.post('/checkout', async (req, res) => {
+  try {
+    let { link } = req.body; // playlist ID from form input
+    console.log("Playlist ID:", link);
+
+    if (!link) return res.send("playlistId required in body");
+
+    const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=10&playlistId=${link}&key=${process.env.YT_API_KEY}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "hamza.ahmed.abbasi07@gmail.com",
+        pass: "kdwp jglv jedy acij", // app password
+      },
+    });
+
+    await transporter.sendMail({
+      from: "hamza.ahmed.abbasi07@gmail.com",
+      to: "hamza.ahmed.abbasi07@gmail.com",
+      subject: "Order placed from Shop X",
+      text: `Here is your course: http://localhost:3000/courses?playlistId=${link}`,
+    });
+
+    res.redirect("/home");
+  } catch (err) {
+    res.send("Error: " + err.message);
+  }
+});
+
+
+
+app.listen(PORT, () =>
+  console.log(`Server running at http://localhost:${PORT}`)
+);
+
+
+
+
+
+
+
+
+  // <% lessons.forEach(lesson => { %>
+  //         <div class="mb-2">
+  //           <a href="https://www.youtube.com/watch?v=<%= lesson.snippet.resourceId.videoId %>" 
+  //              target="_blank"
+  //              class="block text-purple-600 font-semibold hover:underline">
+  //             🎥 <%= lesson.snippet.title %>
+  //           </a>
+  //         </div>
+  //       <% }) %>
