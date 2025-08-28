@@ -87,7 +87,7 @@ router.post("/login",async(req,res)=>{
      
      let url = ""
      link.forEach(id=>{
-      url += `http://localhost:3000/courses?playlistId=${id}\n`
+      url += `https://courseze-4.onrender.com/courses?playlistId=${id}\n`
     })
   console.log(url);
 
