@@ -1,6 +1,8 @@
 const mongoose  = require("mongoose")
 
-mongoose.connect("mongodb://127.0.0.1:27017/CoursEZA")
+mongoose.connect(
+  "mongodb+srv://hamzaahmed:hamza123@cluster0.k8hovee.mongodb.net/CoursEZA?retryWrites=true&w=majority"
+);
 
 const userSchema = mongoose.Schema({
     fullname : String,

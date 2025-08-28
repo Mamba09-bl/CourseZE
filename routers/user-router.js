@@ -107,7 +107,16 @@ router.post("/login",async(req,res)=>{
        from: "hamza.ahmed.abbasi07@gmail.com",
        to: email,
        subject: "Order placed from CourseZE",
-      text: `Here are your courses:\n${url}`,
+      text:`Hi ${user.name || email},
+
+🎉 Thank you for shopping with CourseZE!
+
+💰 Total Amount: RS ${totalAmount}
+
+Here are your course links:
+${url}
+
+Happy Learning! 🚀`,
    });
 
    res.redirect("/home");
